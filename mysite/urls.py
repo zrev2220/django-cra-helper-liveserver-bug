@@ -13,9 +13,21 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path, re_path
+
+from cra_helper.views import proxy_cra_requests
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", include("frontend.urls")),
 ]
+
+# add a reverse-proxy view to help React in the Django view talk to Create-React-App
+if settings.DEBUG:
+    proxy_urls = [
+        re_path(r'^__webpack_dev_server__/(?P<path>.*)$', proxy_cra_requests),
+        re_path(r'^(?P<path>.+\.hot-update\.(js|json|js\.map))$', proxy_cra_requests),
+    ]
+    urlpatterns.extend(proxy_urls)
